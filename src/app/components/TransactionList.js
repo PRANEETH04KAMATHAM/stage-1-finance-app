@@ -9,7 +9,7 @@ export default function TransactionList({ refresh , onEdit }) {
 
   const fetchTransactions = async () => {
     try {
-      const res = await fetch("/transactions"); // Make sure this matches the route
+      const res = await fetch("/transactions"); 
       const data = await res.json();
       if (data.success) {
         setTransactions(data.data || []);
@@ -32,7 +32,7 @@ export default function TransactionList({ refresh , onEdit }) {
 
     const data = await res.json();
     if (data.success) {
-      fetchTransactions(); // refresh list
+      fetchTransactions(); 
     } else {
       alert("Delete failed");
     }

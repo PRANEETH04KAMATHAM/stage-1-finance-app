@@ -15,7 +15,7 @@ export default function Home() {
 
   const handleRefresh = () => {
     setRefreshKey((prev) => prev + 1);
-    setEditingTxn(null); // Clear form after submission
+    setEditingTxn(null); 
   };
 
   return (

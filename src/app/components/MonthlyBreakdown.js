@@ -27,7 +27,6 @@ export default function MonthlyBreakdown({ refresh }) {
           groups[key].txns.push(txn);
         });
 
-        // Sort months descending
         const sorted = Object.entries(groups)
           .sort((a, b) => b[0].localeCompare(a[0]))
           .reduce((acc, [month, data]) => {
