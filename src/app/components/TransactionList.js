@@ -4,40 +4,75 @@
 
 import { useEffect, useState } from "react";
 
-export default function TransactionList({ refresh }) {
+export default function TransactionList({ refresh , onEdit }) {
   const [transactions, setTransactions] = useState([]);
 
   const fetchTransactions = async () => {
-    const res = await fetch("/api/transactions");
-    const data = await res.json();
-    setTransactions(data.transactions || []);
+    try {
+      const res = await fetch("/transactions"); // Make sure this matches the route
+      const data = await res.json();
+      if (data.success) {
+        setTransactions(data.data || []);
+      } else {
+        console.error("Failed to load transactions:", data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
   };
+
+  const handleDelete = async (id) => {
+  const confirmed = confirm("Are you sure you want to delete this transaction?");
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch(`/transactions?id=${id}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      fetchTransactions(); // refresh list
+    } else {
+      alert("Delete failed");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
+
 
   useEffect(() => {
     fetchTransactions();
   }, [refresh]);
 
-  return (
-    <div className="p-4 mt-6 border rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Transactions</h2>
-      {transactions.length === 0 ? (
-        <p className="text-gray-500">No transactions yet.</p>
-      ) : (
-        <ul className="space-y-2">
-          {transactions.map((txn) => (
-            <li
-              key={txn._id}
-              className="p-3 border rounded flex justify-between items-center"
+   return (
+    <ul className="space-y-2">
+      {transactions.map((txn) => (
+        <li key={txn._id} className="p-3 border rounded flex justify-between items-center">
+          <div>
+            <p className="font-medium">{txn.description}</p>
+            <p className="text-sm text-gray-500">{new Date(txn.date).toLocaleDateString()}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <p className="font-semibold text-green-600">₹{txn.amount}</p>
+            <button
+              onClick={() => onEdit(txn)}
+              className="text-blue-600 hover:underline"
             >
-              <div>
-                <p className="font-medium">{txn.description}</p>
-                <p className="text-sm text-gray-500">{new Date(txn.date).toLocaleDateString()}</p>
-              </div>
-              <p className="font-semibold text-green-600">₹{txn.amount}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+              Edit
+            </button>
+            <button
+              onClick={() => handleDelete(txn._id)}
+              className="text-red-500 hover:underline"
+            >
+              Delete
+            </button>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
+
 }

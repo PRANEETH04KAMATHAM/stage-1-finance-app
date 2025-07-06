@@ -4,11 +4,13 @@
 
 import { useState } from "react";
 
-export default function TransactionForm({ onAdd }) {
+export default function TransactionForm({ onSubmit, transaction = null }) {
+  const isEdit = !!transaction;
+
   const [form, setForm] = useState({
-    amount: "",
-    date: "",
-    description: "",
+    amount: transaction?.amount || "",
+    date: transaction?.date?.slice(0, 10) || "",
+    description: transaction?.description || "",
   });
 
   const [error, setError] = useState("");
@@ -20,30 +22,30 @@ export default function TransactionForm({ onAdd }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (!form.amount || !form.date || !form.description) {
       setError("All fields are required.");
       return;
     }
 
     try {
-      const res = await fetch("/api/transactions", {
-        method: "POST",
+      const res = await fetch("/transactions", {
+        method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
           amount: parseFloat(form.amount),
+          id: transaction?._id,
         }),
       });
 
       const data = await res.json();
 
       if (data.success) {
-        onAdd();
+        onSubmit();
         setForm({ amount: "", date: "", description: "" });
         setError("");
       } else {
-        setError(data.message || "Failed to add transaction.");
+        setError(data.message || "Failed to save transaction.");
       }
     } catch (err) {
       setError("Server error");
@@ -52,7 +54,7 @@ export default function TransactionForm({ onAdd }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded shadow">
-      <h2 className="text-xl font-bold">Add Transaction</h2>
+      <h2 className="text-xl font-bold">{isEdit ? "Edit Transaction" : "Add Transaction"}</h2>
       <input
         name="amount"
         type="number"
@@ -81,7 +83,7 @@ export default function TransactionForm({ onAdd }) {
         type="submit"
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
       >
-        Add
+        {isEdit ? "Update" : "Add"}
       </button>
     </form>
   );
