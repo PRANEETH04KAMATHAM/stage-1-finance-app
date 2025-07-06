@@ -7,6 +7,7 @@ import TransactionForm from "./components/TransactionForm";
 import TransactionList from "./components/TransactionList";
 
 import MonthlyChart from "./components/MonthlyChart";
+import MonthlyBreakdown from "./components/MonthlyBreakdown";
 
 export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -32,6 +33,7 @@ export default function Home() {
       />
 
       <MonthlyChart refresh={refreshKey} />
+      <MonthlyBreakdown refresh={refreshKey} />
     </main>
   );
 }
