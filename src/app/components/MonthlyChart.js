@@ -1,7 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+
+  const data = payload[0].payload;
+
+  return (
+    <div className="bg-white p-3 border rounded shadow text-sm max-w-xs">
+      <p className="font-semibold mb-1">{label}</p>
+      <p>Total: ₹{data.total.toFixed(2)}</p>
+      <ul className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+        {data.txns?.map((txn) => (
+          <li key={txn._id} className="flex justify-between border-b pb-1">
+            <span>{txn.description}</span>
+            <span className="text-gray-600">₹{txn.amount}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export default function MonthlyChart({ refresh }) {
   const [data, setData] = useState([]);
@@ -17,16 +46,20 @@ export default function MonthlyChart({ refresh }) {
         json.data.forEach((txn) => {
           const date = new Date(txn.date);
           const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-          grouped[key] = (grouped[key] || 0) + txn.amount;
+          if (!grouped[key]) {
+            grouped[key] = { total: 0, txns: [] };
+          }
+          grouped[key].total += txn.amount;
+          grouped[key].txns.push(txn);
         });
 
-        const chartData = Object.entries(grouped).map(([month, total]) => ({
+        const chartData = Object.entries(grouped).map(([month, { total, txns }]) => ({
           month,
           total: parseFloat(total.toFixed(2)),
+          txns,
         }));
 
         chartData.sort((a, b) => a.month.localeCompare(b.month));
-
         setData(chartData);
       }
     } catch (err) {
@@ -44,12 +77,12 @@ export default function MonthlyChart({ refresh }) {
       {data.length === 0 ? (
         <p className="text-gray-500">No data to display.</p>
       ) : (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={350}>
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="total" fill="#3b82f6" />
           </BarChart>
         </ResponsiveContainer>
